@@ -1,0 +1,51 @@
+# KeywordGrabber Parser
+# Varun Naik 2013
+################################################################################
+
+import urllib2
+from BeautifulSoup import BeautifulSoup
+
+# urls: List of strings. Each string is a URL to parse.
+urls = []
+
+# Open Input file
+for line in open('in.conf'):
+    if line.startsWith("#"):
+        continue
+    pattern = re.match(".*<([0-9a-z\-]*)>.*", 'rasd<0-2>')
+
+    if pattern:
+        baseurl = line
+        expandedurls = []
+
+        for p in pattern.groups[1:]:
+            start, end = p.split('-')
+        
+            try:
+                a = int(start)
+                p_type = int
+            except:
+                p_type = chr
+
+            if p_type == int:
+                for i in xrange(start, end):
+                    
+
+    
+    
+    
+# Read all URLs into list
+
+# Read all ignored words into list
+
+# Read containers to search into list
+
+# Process and expand URLs
+
+# Load each URL
+
+# Process it and store results into array
+
+# Sort results array
+
+# Write results array to files
