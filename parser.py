@@ -37,6 +37,20 @@ def expandurls(urllist, regexlist):
 
     return expandurls(expandedurls, regexlist[1:])
 
+def parseselectors(selectors):
+    """Given a list of selectors, add them into selectorlist by type"""
+    selectorlist = {tag: [], id: [], classname: []}
+    
+    for s in selectors:
+        if s[0] == '.':
+            selectorlist.classname.append(s[1:])
+        elif s[0] == '#':
+            selectorlist.id.append(s[1:])
+        else:
+            selectorlist.name.append(s)
+            
+    return selectorlist
+    
 url = None
 # Open Input file
 for line in open('urls.conf'):
@@ -49,22 +63,22 @@ for line in open('urls.conf'):
         continue # Ignore blank lines
     
     # If the line has selectors get them
-    if line.lower().startswith("selectors:"):
-        selectors = line.split(":")[1].split(',')
+    if line.lower().startswith("selector:"):
+        selectors = parseselectors(line.split(":")[1].split(','))
     else:
         if url:
            # Process URL on line and append it to the list of URLs
-           urls.append([{'url': u, 'selectors': selectors} for u in expandurls([url], pattern)])
-           selectors = None
+           urls.extend([{'url': u, 'selectors': selectors} for u in expandurls([url], pattern)])
+           selector = None
            url = None
         
-        # Otherwise save the URL and look for a Selector below and before the next URL   
+        # Otherwise save the URL and look for a Selector line below and before the next URL   
         url = line
         pattern =  re.findall('<([0-9a-z\-]*)>', line)
 
 # Process the last line too
 if url:
-    urls.append([{'url': u, 'selectors': selectors} for u in expandurls([url], pattern)])
+    urls.extend([{'url': u, 'selectors': selectors} for u in expandurls([url], pattern)])
     
     
 # Read all ignored words into list
@@ -76,10 +90,37 @@ for line in open('ignored.conf'):
     if len(line) == 0: continue # Skip blank lines
 
     ignoredwords.append(line)
-   
+
+def visible(element):
+    content = unicode(element)
+    if element.parent.name in ['style', 'script', '[document]', 'head', 'title']:
+        return False
+    elif re.match('<!--.*-->', content):
+        return False
+    elif content.isspace():
+        return False
+    return True
+      
 # Load each URL
 for url in urls:
-    soup = BeautifulSoup(urllib2.urlopen(url.url))
+   
+    soup = BeautifulSoup(urllib2.urlopen(url['url']))
+    selectors = url['selectors']
+    if selector == None:
+        texts = soup.findAll(text=True)
+    elif selector[0] == '.':
+        print selector.split('.')[1]
+        texts = soup.findAll(class_=selector.split('.')[1], text=True)
+    elif selector[0] == '#':
+        texts = soup.findAll(id=selector.split('#')[1], text=True)
+    else: # Selector is tagname
+        texts = soup.findAll(selector, text=True)
+    visible_texts = filter(visible, texts)
+    print visible_texts
+    # Use selectors if specified to get all groups of words
+    # Count each group of words
+    # Count each word
+    # Emit counts array as csv
     
     
 
