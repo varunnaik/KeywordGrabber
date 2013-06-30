@@ -3,11 +3,13 @@
 ################################################################################
 
 import urllib2
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 import re
 
 # urls: List of strings. Each string is a URL to parse.
 urls = []
+containers = []
+ignoredwords = []
 
 def expandurls(urllist, regexlist):
     # Parse the URL and expand any wildcards; return a list of URLs
@@ -35,24 +37,51 @@ def expandurls(urllist, regexlist):
 
     return expandurls(expandedurls, regexlist[1:])
 
-
+url = None
 # Open Input file
-for line in open('in.conf'):
+for line in open('urls.conf'):
     if line.startswith("#"):
-        continuen
-    pattern =  re.findall('<([0-9a-z\-]*)>', line)
+        continue # Ignore comments
 
-    # Process URL on line and append it to the list of URLs
-    urls.append(expandurls([line], pattern))
+    line = line.strip()
+    
+    if len(line) == 0: 
+        continue # Ignore blank lines
+    
+    # If the line has selectors get them
+    if line.lower().startswith("selectors:"):
+        selectors = line.split(":")[1].split(',')
+    else:
+        if url:
+           # Process URL on line and append it to the list of URLs
+           urls.append([{'url': u, 'selectors': selectors} for u in expandurls([url], pattern)])
+           selectors = None
+           url = None
+        
+        # Otherwise save the URL and look for a Selector below and before the next URL   
+        url = line
+        pattern =  re.findall('<([0-9a-z\-]*)>', line)
 
-
+# Process the last line too
+if url:
+    urls.append([{'url': u, 'selectors': selectors} for u in expandurls([url], pattern)])
+    
+    
 # Read all ignored words into list
+for line in open('ignored.conf'):
+    if line.startswith('#'):
+        continue
 
-# Read containers to search into list
+    line = line.strip()
+    if len(line) == 0: continue # Skip blank lines
 
-# Process and expand URLs
-
+    ignoredwords.append(line)
+   
 # Load each URL
+for url in urls:
+    soup = BeautifulSoup(urllib2.urlopen(url.url))
+    
+    
 
 # Process it and store results into array
 
