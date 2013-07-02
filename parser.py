@@ -133,12 +133,12 @@ for url in urls:
         words = text.split()
         
         for word in words:
-            word = word.lower()
+            word = word.lower().replace(",","")
             if word in ignoredwords: continue
             wordlist[word] += 1
         
         if text in ignoredphrases: continue 
-        phraselist[text.strip().lower()] += 1
+        phraselist[text.strip().lower().replace(",","")] += 1
     print " : ", "done"
          
 print "Got", len(wordlist), "words and", len(phraselist), "phrases."

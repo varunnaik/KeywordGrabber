@@ -13,3 +13,5 @@ Output:
 Output will be in two CSV files, phrases.csv and words.csv  
 They contain the words and phrases, respectively, in descending order of occurence, along with their counts.  
   
+Future Enhancements:  
+Make phrases count more useful, split text on designated separators such as '-' and count the pieces rather than count the whole thing.  
