@@ -5,11 +5,15 @@
 import urllib2
 from bs4 import BeautifulSoup
 import re
+from collections import defaultdict
+import operator
+import sets
 
 # urls: List of strings. Each string is a URL to parse.
 urls = []
 containers = []
 ignoredwords = []
+ignoredphrases = []
 
 def expandurls(urllist, regexlist):
     # Parse the URL and expand any wildcards; return a list of URLs
@@ -88,8 +92,16 @@ for line in open('ignored.conf'):
 
     line = line.strip()
     if len(line) == 0: continue # Skip blank lines
+    
+    # Append to wordlist or phraselist depending on whether it is a word or a phrase
+    if len(line.split()) == 1:
+        ignoredwords.append(line)
+    else:
+        ignoredphrases.append(line)
 
-    ignoredwords.append(line)
+
+ignoredwords = sets.ImmutableSet(ignoredwords)
+ignoredphrases = sets.ImmutableSet(ignoredphrases)
 
 def visible(element):
     content = unicode(element)
@@ -113,10 +125,24 @@ for url in urls:
             texts = tag.findAll(text=True)
             visible_texts.extend(filter(visible,texts))
     
-    print visible_texts
 
-    # ToDo: Load list of selectors and get only matching elements
-    # Iterate over the text and get the wordcounts
-    # Generate the CSV
-    # Generate graphs?
+    phraselist = defaultdict(int)
+    wordlist = defaultdict(int)
+    for text in visible_texts:
+        words = text.split()
+        
+        for word in words:
+            word = word.lower()
+            if word in ignoredwords: continue
+            wordlist[word] += 1
+        
+        if text in ignoredphrases: continue 
+        phraselist[text.strip().lower()] += 1
+         
+    
+    wordlist = sorted(wordlist.iteritems(), key=operator.itemgetter(1))[::-1]
+    phraselist = sorted(phraselist.iteritems(), key=operator.itemgetter(1))[::-1]
+    
+    print wordlist
+    print phraselist
     
