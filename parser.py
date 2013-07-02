@@ -39,15 +39,15 @@ def expandurls(urllist, regexlist):
 
 def parseselectors(selectors):
     """Given a list of selectors, add them into selectorlist by type"""
-    selectorlist = {tag: [], id: [], classname: []}
+    selectorlist = {'tag': [], 'id': [], 'classname': []}
     
     for s in selectors:
         if s[0] == '.':
-            selectorlist.classname.append(s[1:])
+            selectorlist['classname'].append(s[1:])
         elif s[0] == '#':
-            selectorlist.id.append(s[1:])
+            selectorlist['id'].append(s[1:])
         else:
-            selectorlist.name.append(s)
+            selectorlist['tag'].append(s)
             
     return selectorlist
     
@@ -106,26 +106,17 @@ for url in urls:
    
     soup = BeautifulSoup(urllib2.urlopen(url['url']))
     selectors = url['selectors']
-    if selector == None:
-        texts = soup.findAll(text=True)
-    elif selector[0] == '.':
-        print selector.split('.')[1]
-        texts = soup.findAll(class_=selector.split('.')[1], text=True)
-    elif selector[0] == '#':
-        texts = soup.findAll(id=selector.split('#')[1], text=True)
-    else: # Selector is tagname
-        texts = soup.findAll(selector, text=True)
-    visible_texts = filter(visible, texts)
+    visible_texts = []
+
+    for tag in soup.findAll(selectors['tag'], attrs={"class": selectors['classname'], "id": selectors['id']}):
+         if visible(tag):        
+            texts = tag.findAll(text=True)
+            visible_texts.extend(filter(visible,texts))
+    
     print visible_texts
-    # Use selectors if specified to get all groups of words
-    # Count each group of words
-    # Count each word
-    # Emit counts array as csv
+
+    # ToDo: Load list of selectors and get only matching elements
+    # Iterate over the text and get the wordcounts
+    # Generate the CSV
+    # Generate graphs?
     
-    
-
-# Process it and store results into array
-
-# Sort results array
-
-# Write results array to files
