@@ -8,12 +8,14 @@ import re
 from collections import defaultdict
 import operator
 import sets
+import codecs
 
 # urls: List of strings. Each string is a URL to parse.
 urls = []
-containers = []
 ignoredwords = []
 ignoredphrases = []
+phraselist = defaultdict(int)
+wordlist = defaultdict(int)
 
 def expandurls(urllist, regexlist):
     # Parse the URL and expand any wildcards; return a list of URLs
@@ -115,6 +117,8 @@ def visible(element):
       
 # Load each URL
 for url in urls:
+    
+    print "Opening", url['url'],
    
     soup = BeautifulSoup(urllib2.urlopen(url['url']))
     selectors = url['selectors']
@@ -125,9 +129,6 @@ for url in urls:
             texts = tag.findAll(text=True)
             visible_texts.extend(filter(visible,texts))
     
-
-    phraselist = defaultdict(int)
-    wordlist = defaultdict(int)
     for text in visible_texts:
         words = text.split()
         
@@ -138,11 +139,20 @@ for url in urls:
         
         if text in ignoredphrases: continue 
         phraselist[text.strip().lower()] += 1
+    print " : ", "done"
          
+print "Got", len(wordlist), "words and", len(phraselist), "phrases."
+wordlist = sorted(wordlist.iteritems(), key=operator.itemgetter(1))[::-1]
+phraselist = sorted(phraselist.iteritems(), key=operator.itemgetter(1))[::-1]
+
+word_csv = codecs.open('words.csv','w','UTF-8')
+for word in wordlist:
+    word_csv.write(word[0]+','+unicode(word[1])+'\n')
+word_csv.close()
     
-    wordlist = sorted(wordlist.iteritems(), key=operator.itemgetter(1))[::-1]
-    phraselist = sorted(phraselist.iteritems(), key=operator.itemgetter(1))[::-1]
+phrase_csv = codecs.open('phrases.csv','w','UTF-8')
+for phrase in phraselist:
+    phrase_csv.write(phrase[0]+','+unicode(phrase[1])+'\n')
+phrase_csv.close()
     
-    print wordlist
-    print phraselist
-    
+print "Output files words.csv and phrases.csv written, run completed."
